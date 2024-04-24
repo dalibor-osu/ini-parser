@@ -1,6 +1,20 @@
+// File for testing purposes
+
 #include "ini_parser.h"
 #include <stdio.h>
 #include <string.h>
+
+void PrintSuccess(const char* restrict message) {
+	printf("\x1B[92m");
+	printf(message);
+	printf("\033[0m\t\n");
+}
+
+void PrintError(const char* restrict message) {
+	printf("\x1B[91m");
+	printf(message);
+	printf("\033[0m\t\n");
+}
 
 void PrintIniFile(const IniFile* file) {
 	IniSection* currentSection = file->firstSection;
@@ -24,13 +38,14 @@ void PrintIniFile(const IniFile* file) {
 		}
 
 		currentSection = currentSection->previous;
+		printf("\n");
 	}
 }
 
 int main(void) {
 	IniFile* iniFile = ParseFile("./test.ini");
 	if (iniFile == NULL) {
-		printf("failed");
+		PrintError("failed");
 		return 1;
 	}
 	
@@ -39,64 +54,69 @@ int main(void) {
 	printf("\n");
 	IniSection* testSection = GetSection("Test", iniFile);
 	if (testSection == NULL) {
-		printf("Test section not found\n");
+		PrintError("Test section not found");
 	}
 	else {
-		printf("Test section found\n");
+		PrintSuccess("Test section found");
 	}
 
 	if (GetSection("NotFound", iniFile) == NULL) {
-		printf("NotFound section not found\n");
+		PrintSuccess("NotFound section not found");
 	}
 	else {
-		printf("NotFound section found\n");
+		PrintError("NotFound section found");
 	}
 
+	printf("\n");
+	
 	if (GetValue("test", testSection) == NULL) {
-		printf("test value not found\n");
+		PrintError("test value not found");
 	}
 	else {
-		printf("test value found\n");
+		PrintSuccess("test value found");
 	}
-
 
 	if (GetValue("NotFound", testSection) == NULL) {
-		printf("NotFound value not found\n");
+		PrintSuccess("NotFound value not found");
 	}
 	else {
-		printf("NotFound value found\n");
+		PrintError("NotFound value found");
 	}
 
+	printf("\n");
+	
 	if (GetValueInFile("test", "Test", iniFile) == NULL) {
-		printf("test value not found in file\n");
+		PrintError("test value not found in file");
 	}
 	else {
-		printf("test value found in file\n");
+		PrintSuccess("test value found in file");
 	}
 
 
 	if (GetValueInFile("NotFound", "Test", iniFile) == NULL) {
-		printf("NotFound value not found\n");
+		PrintSuccess("NotFound value not found");
 	}
 	else {
-		printf("NotFound value found\n");
+		PrintError("NotFound value found");
 	}
 
 	int* foundIntPtr = GetValueInFileAsInt("test", "Test", iniFile);
 	int* notFoundIntPtr = GetValueInFileAsInt("notFound", "Test", iniFile);
 
+	printf("\n");
+	
 	if (foundIntPtr == NULL) {
-		printf("test int not found in file\n");
+		PrintError("test int not found in file");
 	}
 	else {
-		printf("test int found in file, value: %d\n", *foundIntPtr);
+		PrintSuccess("test int found in file");
 	}
 
 	if (notFoundIntPtr == NULL) {
-		printf("notFound int not found in file\n");
+		PrintSuccess("notFound int not found in file");
 	}
 	else {
-		printf("notFound int found in file, value: %d\n", *notFoundIntPtr);
+		PrintError("notFound int found in file");
 	}
 
 	return 0;
