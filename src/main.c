@@ -6,13 +6,13 @@
 
 void PrintSuccess(const char* restrict message) {
 	printf("\x1B[92m");
-	printf(message);
+	printf("%s", message);
 	printf("\033[0m\t\n");
 }
 
 void PrintError(const char* restrict message) {
 	printf("\x1B[91m");
-	printf(message);
+	printf("%s", message);
 	printf("\033[0m\t\n");
 }
 
