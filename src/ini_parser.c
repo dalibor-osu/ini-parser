@@ -6,6 +6,71 @@
 // Maximum number of chars that will be read per line
 const int CURRENT_LINE_LENGTH = 256; 
 
+// Tries to find a section by its name in IniFile. If found, returns its pointer, otherwise returns NULL
+IniSection* GetSection(const char* sectionName, const IniFile* iniFile) {
+	if (sectionName == NULL || iniFile == NULL) {
+		return NULL;
+	}
+
+	IniSection* currentSection = iniFile->firstSection;
+	while (currentSection != NULL) {
+		if (strcmp(sectionName, currentSection->sectionName) == 0) {
+			return currentSection;
+		}
+		currentSection = currentSection->next;
+	}
+
+	return NULL;
+}
+
+// Tries to find a value inside a section by its key. If found, returns its pointer, otherwise returns NULL
+char* GetValue(const char* key, const IniSection* section) {
+	if (key == NULL || section == NULL) {
+		return NULL;
+	}
+
+	IniKeyValue* currentKeyValue = section->firstKeyValue;
+	while (currentKeyValue != NULL) {
+		if (strcmp(key, currentKeyValue->key) == 0) {
+			return currentKeyValue->value;
+		}
+		currentKeyValue = currentKeyValue->next;
+	}
+
+	return NULL;
+}
+
+// Tries to find a value inside the whole file by its section and key. Shortcut combination of GetSection() and GetValue()
+char* GetValueInFile(const char* key, const char* sectionName, const IniFile* iniFile) {
+	return GetValue(key, GetSection(sectionName, iniFile));
+}
+
+// Tries to find a value inside a section by its key and convert it to an integer. Returns NULL if value is not found
+int* GetValueAsInt(const char* key, const IniSection* section) {
+	char* strValue = GetValue(key, section);
+
+	if (strValue == NULL) {
+		return NULL;
+	}
+
+	int value = atoi(strValue);
+	int* pValue = &value;
+	return pValue;
+}
+
+// Tries to find a value inside the whole file by its section and key and convert it to an integer. Returns NULL of value is not found
+int* GetValueInFileAsInt(const char* key, const char* sectionName, const IniFile* iniFile) {
+	char* strValue = GetValueInFile(key, sectionName, iniFile);
+
+	if (strValue == NULL) {
+		return NULL;
+	}
+
+	int value = atoi(strValue);
+	int* pValue = &value;
+	return pValue;
+}
+
 // Adds a section to the beginning of a linked list in IniFile
 void AddSection(IniFile* file, IniSection* section) {
 	if (file == NULL || section == NULL) {
@@ -40,6 +105,14 @@ void AddKeyValue(IniSection* section, IniKeyValue* keyValue) {
 	section->firstKeyValue->previous = keyValue;
 	section->firstKeyValue = keyValue;
 	section->keyValueCount++;
+}
+
+int SectionContainsKey(const char* key, const IniSection* section) {
+	if (GetValue(key, section) == NULL) {
+		return 0;
+	}
+
+	return 1;
 }
 
 // Walks through the char array until it finds a char thats not whitespace
@@ -252,6 +325,11 @@ IniFile* ParseFile(const char* filePath) {
 		if (newKeyValue == NULL) {
 			return NULL;
 		}
+		
+		if (SectionContainsKey(newKeyValue->key, currentSection) > 0) {
+			fprintf(stderr, "Duplicit key in section");
+			return NULL;
+		}
 
 		// Parse value
 		newKeyValue = ParseValue(&i, &currentChar, currentLine, newKeyValue);
@@ -266,69 +344,4 @@ IniFile* ParseFile(const char* filePath) {
 
 	fclose(file);
 	return iniFile;
-}
-
-// Tries to find a section by its name in IniFile. If found, returns its pointer, otherwise returns NULL
-IniSection* GetSection(const char* sectionName, const IniFile* iniFile) {
-	if (sectionName == NULL || iniFile == NULL) {
-		return NULL;
-	}
-
-	IniSection* currentSection = iniFile->firstSection;
-	while (currentSection != NULL) {
-		if (strcmp(sectionName, currentSection->sectionName) == 0) {
-			return currentSection;
-		}
-		currentSection = currentSection->next;
-	}
-
-	return NULL;
-}
-
-// Tries to find a value inside a section by its key. If found, returns its pointer, otherwise returns NULL
-char* GetValue(const char* key, const IniSection* section) {
-	if (key == NULL || section == NULL) {
-		return NULL;
-	}
-
-	IniKeyValue* currentKeyValue = section->firstKeyValue;
-	while (currentKeyValue != NULL) {
-		if (strcmp(key, currentKeyValue->key) == 0) {
-			return currentKeyValue->value;
-		}
-		currentKeyValue = currentKeyValue->next;
-	}
-
-	return NULL;
-}
-
-// Tries to find a value inside the whole file by its section and key. Shortcut combination of GetSection() and GetValue()
-char* GetValueInFile(const char* key, const char* sectionName, const IniFile* iniFile) {
-	return GetValue(key, GetSection(sectionName, iniFile));
-}
-
-// Tries to find a value inside a section by its key and convert it to an integer. Returns NULL if value is not found
-int* GetValueAsInt(const char* key, const IniSection* section) {
-	char* strValue = GetValue(key, section);
-
-	if (strValue == NULL) {
-		return NULL;
-	}
-
-	int value = atoi(strValue);
-	int* pValue = &value;
-	return pValue;
-}
-
-// Tries to find a value inside the whole file by its section and key and convert it to an integer. Returns NULL of value is not found
-int* GetValueInFileAsInt(const char* key, const char* sectionName, const IniFile* iniFile) {
-	char* strValue = GetValueInFile(key, sectionName, iniFile);
-
-	if (strValue == NULL) {
-		return NULL;
-	}
-
-	int value = atoi(strValue);
-	int* pValue = &value;
-	return pValue;
 }
